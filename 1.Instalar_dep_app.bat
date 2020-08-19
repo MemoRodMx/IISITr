@@ -1,0 +1,2 @@
+cd mtui
+npm i
