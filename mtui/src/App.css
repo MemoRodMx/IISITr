@@ -1,0 +1,55 @@
+.p3 {
+  padding: 1.5em !important;
+}
+
+.mb-2 {
+  margin-bottom: 1.25em;
+}
+
+p {
+  font-size: 20px;
+}
+
+.f20 {
+  font-size: 20px;
+}
+
+.text-right {
+  text-align: right;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  padding-right: 5px;
+}
+
+.spacer {
+  padding-bottom: 120px;
+}
+
+label {
+  font-weight: bold;
+  color: #333 !important;
+}
+
+#mobileMenu a {
+  border-bottom: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.brand-logo {
+  display: flex !important;
+  align-items: center;
+}
+
+.brand-logo img {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+}
+
+@media (min-width: 767px) {
+  .brand-logo {
+    margin-left: 15px;
+    display: flex !important;
+    align-items: center;
+  }
+}
