@@ -7,6 +7,22 @@ import logo from './logo.png'
 function App () {
   return (
     <div className='App'>
+      <div id='loader'>
+        <div className='preloader-wrapper big active'>
+          <div className='spinner-layer spinner-blue-only'>
+            <div className='circle-clipper left'>
+              <div className='circle'></div>
+            </div>
+            <div className='gap-patch'>
+              <div className='circle'></div>
+            </div>
+            <div className='circle-clipper right'>
+              <div className='circle'></div>
+            </div>
+          </div>
+        </div>
+        <p>Cargando...</p>
+      </div>
       <nav className='grey darken-4'>
         <div className='nav-wrapper'>
           <a href='/' className='brand-logo'>

@@ -37,33 +37,36 @@ class Home extends Component {
    * Handler para la onLoad
    */
   handleLoad () {
-    this.setState({ sidenav: document.querySelectorAll('.sidenav') })
-    this.setState({ sidenavInstance: M.Sidenav.init(this.state.sidenav, {}) })
+    setTimeout(() => {
+      this.setState({ sidenav: document.querySelectorAll('.sidenav') })
+      this.setState({ sidenavInstance: M.Sidenav.init(this.state.sidenav, {}) })
 
-    this.setState({
-      originInstance: M.FormSelect.init(
-        document.querySelectorAll('#origin'),
-        {}
-      ),
-      destinationInstance: M.FormSelect.init(
-        document.querySelectorAll('#destination'),
-        {}
-      ),
-      userTypeInstance: M.FormSelect.init(
-        document.querySelectorAll('#usersTypeList'),
-        {}
-      ),
-      nearModal: M.Modal.init(document.querySelectorAll('#userModal'), {}),
-      userModal: M.Modal.init(document.querySelectorAll('#nearModal'), {}),
-      pricesModal: M.Modal.init(document.querySelectorAll('#pricesModal'), {})
-    })
+      this.setState({
+        originInstance: M.FormSelect.init(
+          document.querySelectorAll('#origin'),
+          {}
+        ),
+        destinationInstance: M.FormSelect.init(
+          document.querySelectorAll('#destination'),
+          {}
+        ),
+        userTypeInstance: M.FormSelect.init(
+          document.querySelectorAll('#usersTypeList'),
+          {}
+        ),
+        nearModal: M.Modal.init(document.querySelectorAll('#userModal'), {}),
+        userModal: M.Modal.init(document.querySelectorAll('#nearModal'), {}),
+        pricesModal: M.Modal.init(document.querySelectorAll('#pricesModal'), {})
+      })
+    }, 500)
   }
 
   /**
    * Obtiene el listado de estaciones disponibles
    */
-  loadStations () {
-    fetch(config.api + '/estaciones', {
+  async loadStations () {
+    document.querySelector('#loader').setAttribute('class', '')
+    await fetch(config.api + '/estaciones', {
       headers: {
         'Content-type': 'application/json'
       }
@@ -71,6 +74,7 @@ class Home extends Component {
       .then(res => res.json())
       .then(res => {
         this.setState({ stations: res.data, destinations: res.data })
+        document.querySelector('#loader').setAttribute('class', 'loaded')
       })
       .catch(err => {
         console.log(err)
@@ -304,194 +308,196 @@ class Home extends Component {
 
   render () {
     return (
-      <div className='p3'>
-        <div className='row'>
-          <h5 className='mb-2 col push-m4'>Viaje</h5>
-        </div>
-
-        <div className='row'>
-          <div className='input-field col s12 l4 push-l4'>
-            <select
-              id='origin'
-              defaultValue=''
-              onChange={this.changeOriginHandler}
-            >
-              <option value='' disabled></option>
-              {this.state.stations.map(station => {
-                return (
-                  <option key={station.codigo} value={station.codigo}>
-                    {station.nombre}
-                  </option>
-                )
-              })}
-            </select>
-            <label>Origen</label>
+      <>
+        <div className='p3'>
+          <div className='row'>
+            <h5 className='mb-2 col push-m4'>Viaje</h5>
           </div>
-        </div>
 
-        <div className='row'>
-          <div className='input-field col s12 l4 push-l4'>
-            <select
-              id='destination'
-              defaultValue=''
-              onChange={this.changeDestinationHandler}
-            >
-              <option value='' disabled></option>
-              {this.state.destinations.map(station => {
-                return (
-                  <option key={station.codigo} value={station.codigo}>
-                    {station.nombre}
-                  </option>
-                )
-              })}
-            </select>
-            <label>Destino</label>
+          <div className='row'>
+            <div className='input-field col s12 l4 push-l4'>
+              <select
+                id='origin'
+                defaultValue=''
+                onChange={this.changeOriginHandler}
+              >
+                <option value='' disabled></option>
+                {this.state.stations.map(station => {
+                  return (
+                    <option key={station.codigo} value={station.codigo}>
+                      {station.nombre}
+                    </option>
+                  )
+                })}
+              </select>
+              <label>Origen</label>
+            </div>
           </div>
-        </div>
 
-        <div className='row'>
-          <h5 className='mb-2 col push-m4'>Estimaci&oacute;n</h5>
-        </div>
-
-        <div className='row'>
-          <div className='input-field col s12 l4 push-l4'>
-            <p className='text-right'>{this.state.proximo}</p>
-            <label className='active' htmlFor='proximo'>
-              Próximo
-            </label>
+          <div className='row'>
+            <div className='input-field col s12 l4 push-l4'>
+              <select
+                id='destination'
+                defaultValue=''
+                onChange={this.changeDestinationHandler}
+              >
+                <option value='' disabled></option>
+                {this.state.destinations.map(station => {
+                  return (
+                    <option key={station.codigo} value={station.codigo}>
+                      {station.nombre}
+                    </option>
+                  )
+                })}
+              </select>
+              <label>Destino</label>
+            </div>
           </div>
-        </div>
-        <div className='row'>
-          <div className='input-field col s12 l4 push-l4'>
-            <p className='text-right'>{this.state.costo}</p>
-            <label className='active' htmlFor='costo'>
-              Costo
-            </label>
-          </div>
-        </div>
-        <div className='row'>
-          <div className='input-field col s12 l4 push-l4'>
-            <p className='name text-right'>{this.state.tiempo}</p>
-            <label className='active' htmlFor='tiempo'>
-              Tiempo
-            </label>
-          </div>
-        </div>
 
-        <div id='nearModal' className='modal bottom-sheet'>
-          <div className='modal-content'>
-            <h5>Proximos Trenes</h5>
-            <div className='row'>
-              <div className='col s12 m6'>
-                <table id='#nearList'>
-                  <thead>
-                    <tr>
-                      <th>Hora</th>
-                      <th>Tiempo de espera</th>
-                    </tr>
-                  </thead>
+          <div className='row'>
+            <h5 className='mb-2 col push-m4'>Estimaci&oacute;n</h5>
+          </div>
 
-                  <tbody>
-                    {this.state.nearTrains.map(train => {
+          <div className='row'>
+            <div className='input-field col s12 l4 push-l4'>
+              <p className='text-right'>{this.state.proximo}</p>
+              <label className='active' htmlFor='proximo'>
+                Próximo
+              </label>
+            </div>
+          </div>
+          <div className='row'>
+            <div className='input-field col s12 l4 push-l4'>
+              <p className='text-right'>{this.state.costo}</p>
+              <label className='active' htmlFor='costo'>
+                Costo
+              </label>
+            </div>
+          </div>
+          <div className='row'>
+            <div className='input-field col s12 l4 push-l4'>
+              <p className='name text-right'>{this.state.tiempo}</p>
+              <label className='active' htmlFor='tiempo'>
+                Tiempo
+              </label>
+            </div>
+          </div>
+
+          <div id='nearModal' className='modal bottom-sheet'>
+            <div className='modal-content'>
+              <h5>Proximos Trenes</h5>
+              <div className='row'>
+                <div className='col s12 m6'>
+                  <table id='#nearList'>
+                    <thead>
+                      <tr>
+                        <th>Hora</th>
+                        <th>Tiempo de espera</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {this.state.nearTrains.map(train => {
+                        return (
+                          <tr key={'near' + train.orig}>
+                            <td>
+                              <strong>{train.hora}</strong>
+                            </td>
+                            <td>
+                              {train.hora.lastIndexOf('hay') !== -1
+                                ? ' '
+                                : parseInt(train.diff) + ' minuto(s)'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className='modal-footer'>
+              <a
+                href='/#'
+                className='modal-close waves-effect waves-green btn-flat'
+              >
+                Aceptar
+              </a>
+            </div>
+          </div>
+
+          <div id='userModal' className='modal bottom-sheet'>
+            <div className='modal-content'>
+              <h5>Usuario</h5>
+
+              <div className='row'>
+                <div className='input-field col s12 l4 push-l4'>
+                  <select
+                    value={this.state.userType}
+                    onChange={this.changeUserTypeHandler}
+                    id='usersTypeList'
+                  >
+                    {this.state.userTypes.map(type => {
                       return (
-                        <tr key={'near' + train.orig}>
-                          <td>
-                            <strong>{train.hora}</strong>
-                          </td>
-                          <td>
-                            {train.hora.lastIndexOf('hay') !== -1
-                              ? ' '
-                              : parseInt(train.diff) + ' minuto(s)'}
-                          </td>
-                        </tr>
+                        <option key={'ut' + type.codigo} value={type.codigo}>
+                          {type.tipo}
+                        </option>
                       )
                     })}
-                  </tbody>
-                </table>
+                  </select>
+                  <label>Tipo de Usuario</label>
+                  <p className='spacer'></p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className='modal-footer'>
-            <a
-              href='/#'
-              className='modal-close waves-effect waves-green btn-flat'
-            >
-              Aceptar
-            </a>
-          </div>
-        </div>
-
-        <div id='userModal' className='modal bottom-sheet'>
-          <div className='modal-content'>
-            <h5>Usuario</h5>
-
-            <div className='row'>
-              <div className='input-field col s12 l4 push-l4'>
-                <select
-                  value={this.state.userType}
-                  onChange={this.changeUserTypeHandler}
-                  id='usersTypeList'
-                >
-                  {this.state.userTypes.map(type => {
-                    return (
-                      <option key={'ut' + type.codigo} value={type.codigo}>
-                        {type.tipo}
-                      </option>
-                    )
-                  })}
-                </select>
-                <label>Tipo de Usuario</label>
-                <p className='spacer'></p>
-              </div>
+            <div className='modal-footer'>
+              <a
+                href='/#'
+                className='modal-close waves-effect waves-green btn-flat'
+              >
+                Aceptar
+              </a>
             </div>
           </div>
-          <div className='modal-footer'>
-            <a
-              href='/#'
-              className='modal-close waves-effect waves-green btn-flat'
-            >
-              Aceptar
-            </a>
-          </div>
-        </div>
 
-        <div id='pricesModal' className='modal bottom-sheet'>
-          <div className='modal-content'>
-            <h5>Precios por categoria</h5>
-            <div className='row'>
-              <div className='col s12 m6'>
-                <table id='#pricesList'>
-                  <thead>
-                    <tr>
-                      <th>Tipo</th>
-                      <th>Precio</th>
-                    </tr>
-                  </thead>
+          <div id='pricesModal' className='modal bottom-sheet'>
+            <div className='modal-content'>
+              <h5>Precios por categoria</h5>
+              <div className='row'>
+                <div className='col s12 m6'>
+                  <table id='#pricesList'>
+                    <thead>
+                      <tr>
+                        <th>Tipo</th>
+                        <th>Precio</th>
+                      </tr>
+                    </thead>
 
-                  <tbody>
-                    {this.state.prices.map(price => {
-                      return (
-                        <tr key={'price' + price.tipo}>
-                          <td>{price.tipo}</td>
-                          <td>{price.valor}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                    <tbody>
+                      {this.state.prices.map(price => {
+                        return (
+                          <tr key={'price' + price.tipo}>
+                            <td>{price.tipo}</td>
+                            <td>{price.valor}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-          <div className='modal-footer'>
-            <a
-              href='/#'
-              className='modal-close waves-effect waves-green btn-flat'
-            >
-              Aceptar
-            </a>
+            <div className='modal-footer'>
+              <a
+                href='/#'
+                className='modal-close waves-effect waves-green btn-flat'
+              >
+                Aceptar
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     )
   }
 }

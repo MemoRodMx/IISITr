@@ -53,3 +53,21 @@ label {
     align-items: center;
   }
 }
+
+#loader {
+  background-color: rgba(100, 100, 100, 0.5);
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 1000000;
+
+  color: white;
+  font-size: 32px;
+  text-align: center;
+  padding-top: 15%;
+  letter-spacing: 2px;
+}
+
+#loader.loaded {
+  display: none;
+}

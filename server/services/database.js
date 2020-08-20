@@ -4,7 +4,7 @@ const sqlite = require('sqlite')
 const path = require('path')
 const dbPath = path.resolve(__dirname, '../data/tr5nr.sqlite')
 
-function query (query) {
+async function query (query) {
   return sqlite
     .open({
       filename: dbPath,

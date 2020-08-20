@@ -3,14 +3,29 @@ const express = require('express')
 const cors = require('cors')
 const db = require('./services/database')
 const port = 8080
-const app = express()
 const moment = require('moment')
+const fs = require('fs')
+const https = require('https')
 
+const config = require('./config')
+
+const options = {
+  key: fs.readFileSync('C:/Certbot/live/spid.viewdns.net/privkey.pem'),
+  cert: fs.readFileSync('C:/Certbot/live/spid.viewdns.net/cert.pem')
+}
+const app = express()
+
+if (config.mode == 'ssl') {
+  const server = https.createServer(options, app).listen(port, function () {
+    console.log('Express (SSL) server listening on port ' + port)
+  })
+} else {
+  app.listen(port, () => {
+    console.log('Express Listening on port: ', port)
+  })
+}
 app.use(cors())
 app.use(express.json())
-app.listen(port, () => {
-  console.log('Listening on port: ', port)
-})
 
 app.get('/', function (req, res) {
   res.status(200).send('OK')
@@ -27,9 +42,11 @@ app.get('/usuarios', function (req, res) {
  * Tabla: estacion
  */
 app.get('/estaciones', function (req, res) {
-  db.query('SELECT * FROM estacion').then(data => {
-    res.json({ data })
-  })
+  ;(async () => {
+    const data = await db.query('SELECT * FROM estacion').then(data => {
+      res.json({ data })
+    })
+  })()
 })
 
 /**
@@ -39,7 +56,11 @@ app.get('/estaciones', function (req, res) {
 app.get('/near-trains/:origin/:destination/:dia/:listed', function (req, res) {
   p = req.params
 
-  if (p.origin && p.destination && p.dia) {
+  if (
+    undefined != p.origin &&
+    undefined != p.destination &&
+    undefined != p.dia
+  ) {
     hora = moment(new Date()).format('HH:mm:ss')
     epoch = moment('1969-12-31 ' + hora).add(2, 'days')
 
@@ -49,34 +70,36 @@ app.get('/near-trains/:origin/:destination/:dia/:listed', function (req, res) {
     FROM
       horario h
     WHERE
-      h.dia = ${parseInt(p.dia)}
-      AND h.origen = ${parseInt(p.origin)}
-      AND h.direccion = ${parseInt(p.destination)}
-      AND h.hora > ${parseInt(p.listed)}
+      h.dia = ${p.dia}
+      AND h.origen = ${p.origin}
+      AND h.direccion = ${p.destination}
+      AND h.hora > ${p.listed}
     ORDER BY
     h.hora ASC 
     `
+    console.log(query)
+    ;(async () => {
+      await db.query(query).then(data => {
+        if (undefined != data.length) {
+          data.forEach((el, i) => {
+            date = moment(el.hora * 1000)
 
-    db.query(query).then(data => {
-      if (undefined != data.length) {
-        data.forEach((el, i) => {
-          date = moment(el.hora * 1000)
+            data[i].orig = el.hora
+            data[i].hora = date.format('HH:mm')
 
-          data[i].orig = el.hora
-          data[i].hora = date.format('HH:mm')
+            //          console.log('epoch', epoch, date)
 
-          //          console.log('epoch', epoch, date)
+            data[i].diff = moment.duration(date.diff(epoch)).as('minutes')
+            data[i].epoch = epoch
+            data[i].date = date
+          })
 
-          data[i].diff = moment.duration(date.diff(epoch)).as('minutes')
-          data[i].epoch = epoch
-          data[i].date = date
-        })
-
-        res.json({ data })
-      } else {
-        res.json({ error: 'No hay trenes disponibles' })
-      }
-    })
+          res.json({ data })
+        } else {
+          res.json({ error: 'No hay trenes disponibles' })
+        }
+      })
+    })()
   }
 })
 
@@ -122,13 +145,13 @@ app.get('/near-train/:origin/:destination/:dia/:tipo_usuario', function (
       JOIN tarifa t ON (
         t.origen = ( SELECT e.tramo FROM estacion e WHERE h.origen = e.codigo AND t.rango = r.codigo ) 
       AND t.destino = ( SELECT e.tramo FROM estacion e WHERE h.direccion = e.codigo AND t.rango = r.codigo )
-      AND t.usuario = ${parseInt(p.tipo_usuario)}
+      AND t.usuario = ${p.tipo_usuario}
       ) 
       
     WHERE
-      h.dia = ${parseInt(p.dia)}
-      AND h.origen = ${parseInt(p.origin)}
-      AND h.direccion = ${parseInt(p.destination)}
+      h.dia = ${p.dia}
+      AND h.origen = ${p.origin}
+      AND h.direccion = ${p.destination}
       AND h.hora >= ${epoch.format('X')}
     ORDER BY
     h.hora ASC 
@@ -191,13 +214,13 @@ app.get('/precios/:origin/:destination/:except', function (req, res) {
       JOIN usuario u ON u.codigo = t.usuario
       JOIN rango r ON ( ${epoch.format('X')} BETWEEN r.desde AND r.hasta )
     WHERE
-      t.origen = ( SELECT e.tramo FROM estacion e WHERE e.codigo = ${parseInt(
+      t.origen = ( SELECT e.tramo FROM estacion e WHERE e.codigo = ${
         p.origin
-      )} AND t.rango = r.codigo ) 
-      AND t.destino = ( SELECT e.tramo FROM estacion e WHERE e.codigo = ${parseInt(
+      } AND t.rango = r.codigo ) 
+      AND t.destino = ( SELECT e.tramo FROM estacion e WHERE e.codigo = ${
         p.destination
-      )} AND t.rango = r.codigo )
-      AND u.codigo <> ${parseInt(p.except)}
+      } AND t.rango = r.codigo )
+      AND u.codigo <> ${p.except}
     `
 
   db.query(query).then(data => {
